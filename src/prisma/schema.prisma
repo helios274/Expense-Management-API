@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id  Int @id @default(autoincrement())
+  email   String   @unique
+  password String
+  firstName    String @map("first_name")
+  lastName    String? @map("last_name")
+  isAdmin Boolean @default(false) @map("is_admin")
+  isActive Boolean @default(false) @map("is_active")
+  lastLoggedIn DateTime?  @map("last_logged_in")
+  dateJoined DateTime  @default(now()) @map("date_joined")
+  categories Category[]
+  expenses Expense[]
+  sources Source[]
+  incomes Income[]
+
+  @@map("users")
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(100) @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int @map("user_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  expenses Expense[]
+
+  @@map("categories")
+}
+
+model Expense {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int @map("user_id")
+  amount Decimal
+  category Category @relation(fields: [categoryId], references: [id])
+  categoryId Int @map("category_id")
+  description String? @db.VarChar(255)
+  date DateTime
+
+  @@map("expenses")
+}
+
+model Source {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(100) @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int @map("user_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  incomes Income[]
+
+  @@map("sources")
+}
+
+model Income {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int @map("user_id")
+  amount Decimal
+  source Source @relation(fields: [sourceId], references: [id])
+  sourceId Int @map("source_id")
+  description String? @db.VarChar(255)
+  date DateTime
+
+  @@map("incomes")
+}
